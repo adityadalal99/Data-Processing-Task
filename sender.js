@@ -1,5 +1,5 @@
 const amqp = require('amqplib');
-//const { resolve, reject} = require('bluebird');
+const { resolve, reject} = require('bluebird');
 
 
 let connection = null;
@@ -8,6 +8,8 @@ let channelProcess = null;
 let queueTerminate = null;
 let queueProcess = null;
 
+// @desc      Connecting to RabbitMQ
+// @access    Public
 exports.connectQ = ()=>
 {
     return new Promise(async (resolve, reject) => {
@@ -21,6 +23,7 @@ exports.connectQ = ()=>
             catch(error)
             {
                 console.log(error);
+                server.close(() => process.exit(1));
                 reject(error);
             }
         }
@@ -31,6 +34,26 @@ exports.connectQ = ()=>
     });
 };
 
+// @desc      Closing connection to RabbitMQ
+// @access    Public
+exports.closeConnection = async ()=>{
+    if(connection !== null)
+    {
+        try
+        {
+            connection.close();
+            resolve();
+        }
+        catch(er)
+        {
+            console.error(er);
+            reject(er);
+        }
+    }
+};
+
+// @desc      Creating a channel if does not exist to push terminate tasks 
+// @access    Public
 exports.createTerminateChannel = () => {
     return new Promise(async (resolve, reject) => {
         if(channelTerminate && queueTerminate)
@@ -42,7 +65,7 @@ exports.createTerminateChannel = () => {
             channelTerminate = await connection.createChannel();
             try
             {
-                queueTerminate = 'Terminate';
+                queueTerminate = process.env.QUEUE_TERMINATE;
                 await channelTerminate.assertQueue(queueTerminate, {
                     durable: false
                 });
@@ -62,6 +85,8 @@ exports.createTerminateChannel = () => {
     });
 };
 
+// @desc      Creating a channel if does not exist to push Process tasks 
+// @access    Public
 exports.createProcessChannel = () => {
     return new Promise(async (resolve, reject) => {
         if(channelProcess && queueProcess)
@@ -73,13 +98,10 @@ exports.createProcessChannel = () => {
             channelProcess = await connection.createChannel();
             try
             {
-                queueProcess = 'Process';
+                queueProcess = process.env.QUEUE_PROCESS;
                 await channelProcess.assertQueue(queueProcess, {
                     durable: false
                 });
-                //let msg = "First Message";
-                // channel.sendToQueue(queue, Buffer.from(msg));
-                // console.log(" [x] Sent %s", msg);
                 resolve([channelProcess,queueProcess]);
             }
             catch(error)
@@ -95,6 +117,8 @@ exports.createProcessChannel = () => {
     });
 };
 
+// @desc      Creating Process Queue if does not exist and pushing the processObj to the Process Queue 
+// @access    Public
 exports.pushToProcessQueue = (queueProcesss,channelProcesss,messageProcess)=>{
     return new Promise(async (resolve,reject) => {
         try
@@ -110,6 +134,9 @@ exports.pushToProcessQueue = (queueProcesss,channelProcesss,messageProcess)=>{
     });
 };
 
+
+// @desc      Creating Terminate Queue if does not exist and pushing the processObj to the Terminate Queue 
+// @access    Public
 exports.pushToTermiateQueue = (queueTerminatee,channelTerminatee,messageTerminate) => {
     return new Promise(async (resolve,reject)=>{
         try
@@ -125,12 +152,13 @@ exports.pushToTermiateQueue = (queueTerminatee,channelTerminatee,messageTerminat
     });
 };
 
+//To Test the module individually
 // async function test(){
-//     connection = await connectQ();
-//     let resTer = await createTerminateChannel();
-//     let resPros = await createProcessChannel();
-//     await pushToProcessQueue(resPros[1],resPros[0],{message : "ProcessJob"});
-//     await pushToTermiateQueue(resTer[1],resTer[0],{message:"TermiateJob"});
+//     connection = await this.connectQ();
+//     let resTer = await this.createTerminateChannel();
+//     let resPros = this.await createProcessChannel();
+//     await this.pushToProcessQueue(resPros[1],resPros[0],{message : "ProcessJob"});
+//     await this.pushToTermiateQueue(resTer[1],resTer[0],{message:"TermiateJob"});
 // }
 
 // test();

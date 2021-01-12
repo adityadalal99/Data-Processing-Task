@@ -3,21 +3,17 @@ const express = require('express');
 const router = express.Router();
 const {
     startProcess,
-    stopProcess
+    stopProcess,
+    pauseProcess,
+    resumeProcess
 } = require('../controllers/process.js');
 
 
 router.post("/start",async (req,res) => {
     try
     {
-        let resObj = await startProcess(req.body.processId,req.body.filePath);
-        if(resObj != null)
-        {
-            return res.status(102).json(resObj);
-        }
-        return res.status(202).json({
-            message : "Your File is being Processed"
-        });
+        let resObj = await startProcess(req.body.processObj);
+        return res.status(resObj[0].resCode).json(resObj[1]);
     }
     catch(er)
     {
@@ -27,17 +23,11 @@ router.post("/start",async (req,res) => {
     }
 });
 
-router.put("/stop", async (req,res) => {
+router.post("/stop", async (req,res) => {
     try
     {
         let resObj = await stopProcess(req.body.processObj);
-        if(resObj != null)
-        {
-            return res.status(401).json(resObj);
-        }
-        return res.status(202).json({
-            message : "Your Process is being stopped"
-        });
+        return res.status(resObj[0].resCode).json(resObj[1]);
     }
     catch(er)
     {
@@ -51,13 +41,20 @@ router.post("/pause", async (req,res)=>{
     try
     {
         let resObj = await pauseProcess(req.body.processObj);
-        if(resObj != null)
-        {
-            return res.status(401).json(resObj);
-        }
-        return res.status(202).json({
-            message : "Your Process is being stopped"
-        });        
+        return res.status(resObj[0].resCode).json(resObj[1]);  
+    }
+    catch(er)
+    {
+        return res.status(501).json({
+            errors : { body : [ 'Could Not Stop Process Now. Try Later', er.message]}
+        });
+    }
+});
+
+router.post("/resume", async (req,res)=>{
+    try{
+        let resObj = await resumeProcess(req.body.processObj);
+        return res.status(resObj[0].resCode).json(resObj[1]);  
     }
     catch(er)
     {
