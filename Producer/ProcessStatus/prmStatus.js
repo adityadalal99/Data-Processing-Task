@@ -45,12 +45,12 @@ exports.getProcessStatus = (processId)=>{
         }
         try{
             let status = await client.get(processId);
-            resolve(status);
+            return resolve(status);
         }
         catch(er)
         {
             console.log(er);
-            reject(er);
+            return reject(er);
         }
     });
 
@@ -66,12 +66,12 @@ exports.setProcessStatus = (processId, status)=>{
         }
         try{
             await client.set(processId,status);
-            resolve();
+            return resolve();
         }
         catch(er)
         {
             console.error(er);
-            reject(er);
+            return reject(er);
         }
     });
 };
@@ -86,11 +86,12 @@ exports.getPauseProcessRowNumber = (processId)=>{
         }
         try{
             let rowNumber = await client.get(processId + require('../ProcessStatus/statusValue').pausedAT);
-            resolve(rowNumber);
+            return resolve(rowNumber);
         }
         catch(er)
         {
             console.error(er);
+            return reject(er);
         }
     });
 };

@@ -31,18 +31,18 @@ exports.startProcess = (processObj) =>{
         };
         try{
             let process_status = await getProcessStatus(processObj.processId);
-            if(process_status != null && (process_status === processStatus.Queued || process_status === processStatus.Processing))
+            if(process_status != null && (process_status == processStatus.Queued || process_status == processStatus.Processing))
             {
-                resolve([{resCode :409},{body:{message:"Process Already Started"}}]);
+                return resolve([{resCode :409},{body:{message:"Process Already Started"}}]);
             }
             await pushToProcessQueue(queueProcess,channelProcess,messageProcess);
             await setProcessStatus(processObj.processId,processStatus.Processing);
-            resolve([{resCode : 202},{body:{message: "Your File is being Processed"}}]);
+            return resolve([{resCode : 202},{body:{message: "Your File is being Processed"}}]);
         }
         catch(er)
         {
             console.error(er);
-            reject(er);
+            return reject(er);
         } 
     });
 };
@@ -66,16 +66,16 @@ exports.stopProcess = (processObj) =>{
             let process_status = getProcessStatus(processObj.processId);
             if(process_status === null)
             {
-                resolve([{resCode : 401},{body:{message : "No such Process found"}}]);
+                return resolve([{resCode : 401},{body:{message : "No such Process found"}}]);
             }
             if(process_status === processStatus.Terminate)
             {
-                resolve({resCode : 409},{body:{message:"Process is Already Terminated"}});
+                return resolve({resCode : 409},{body:{message:"Process is Already Terminated"}});
             }
             if(process_status === processStatus.Queued)
             {
                 await setProcessStatus(processObj.processId, processStatus.Terminate);
-                resolve({resCode : 202},{body :{message:"Process is Terminated"}});
+                return resolve({resCode : 202},{body :{message:"Process is Terminated"}});
             }
             if(process_status === processStatus.Processing)
             {
@@ -87,12 +87,12 @@ exports.stopProcess = (processObj) =>{
             }
             await pushToTermiateQueue(queueTerminate,channelTerminate,messageTerminate);
 
-            resolve({resCode : 202},{body :{message:"Process is Terminated"}});
+            return resolve({resCode : 202},{body :{message:"Process is Terminated"}});
         }
         catch(er)
         {
             console.error(er);
-            reject(er);
+            return reject(er);
         } 
     });
 };
@@ -114,21 +114,21 @@ exports.pauseProcess = (processObj)=>{
             let process_status = getProcessStatus(processObj.processId);
             if(process_status === null)
             {
-                resolve({resCode : 401},{body:{message : "No such Process found"}});
+                return resolve({resCode : 401},{body:{message : "No such Process found"}});
             }
              if(process_status === processStatus.Queued)
             {
                 await setProcessStatus(processObj.processId, processStatus.Terminate);
-                resolve({resCode : 202},{body:{message:"Process Paused"}});
+                return resolve({resCode : 202},{body:{message:"Process Paused"}});
             }
             await pushToTermiateQueue(queueTerminate,channelTerminate,messageTerminate);
             await setProcessStatus(processObj.processId, processStatus.Terminate);
-            resolve({resCode : 202},{body:{message:"Process Paused"}});
+            return resolve({resCode : 202},{body:{message:"Process Paused"}});
         }
         catch(er)
         {
             console.error(er);
-            reject(er);
+            return reject(er);
         }
     });
 };
@@ -149,32 +149,32 @@ exports.resumeProcess = (processObj)=>{
             let process_status = getProcessStatus(processObj.processId);
             if(process_status === null)
             {
-                resolve({resCode : 401},{body:{message : "No such Process found"}});
+                return resolve({resCode : 401},{body:{message : "No such Process found"}});
             }
              if(process_status === processStatus.Queued)
             {
-                resolve({resCode : 202},{body:{message:"Process Resumed"}});
+                return resolve({resCode : 202},{body:{message:"Process Resumed"}});
             }
             if(process_status === processStatus.Processed)
             {
-                resolve({resCode : 409},{body:{message : "Process ALready Finished"}});
+                return resolve({resCode : 409},{body:{message : "Process ALready Finished"}});
             }
             if(process_status === processStatus.Processing)
             {
                 await pushToProcessQueue(queueProcess,channelProcess,messageProcess);
                 await setProcessStatus(processObj.processId, processStatus.Queued);
                 let rowNumber = getPauseProcessRowNumber(processObj.processId + processStatus.pausedAT);
-                resolve({resCode : 202},{body:{message:`Process Resumed from ${rowNumber}`}});
+                return resolve({resCode : 202},{body:{message:`Process Resumed from ${rowNumber}`}});
             }
             else
             {
-                resolve({resCode : 501},{body:{message:"Something Went Wrong Please Try Again Later"}});
+                return resolve({resCode : 501},{body:{message:"Something Went Wrong Please Try Again Later"}});
             }
         }
         catch(er)
         {
             console.error(er);
-            reject(er);
+            return reject(er);
         }
     });
 };

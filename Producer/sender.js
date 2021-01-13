@@ -58,7 +58,7 @@ exports.createTerminateChannel = () => {
     return new Promise(async (resolve, reject) => {
         if(channelTerminate && queueTerminate)
         {
-            resolve([channelTerminate,queueTerminate]);
+            return resolve([channelTerminate,queueTerminate]);
         }
         try
         {
@@ -69,7 +69,7 @@ exports.createTerminateChannel = () => {
                 await channelTerminate.assertQueue(queueTerminate, {
                     durable: false
                 });
-                resolve([channelTerminate,queueTerminate]);
+                return resolve([channelTerminate,queueTerminate]);
             } 
             catch(er)
             {
@@ -91,7 +91,7 @@ exports.createProcessChannel = () => {
     return new Promise(async (resolve, reject) => {
         if(channelProcess && queueProcess)
         {
-            resolve([channelProcess,queueProcess]);
+            return resolve([channelProcess,queueProcess]);
         }
         try
         {
@@ -124,7 +124,7 @@ exports.pushToProcessQueue = (queueProcesss,channelProcesss,messageProcess)=>{
         try
         {
             channelProcesss.sendToQueue(queueProcesss, Buffer.from(JSON.stringify(messageProcess)));
-            resolve();
+            return resolve();
         }
         catch(ex)
         {
@@ -142,7 +142,7 @@ exports.pushToTermiateQueue = (queueTerminatee,channelTerminatee,messageTerminat
         try
         {
             channelTerminatee.sendToQueue(queueTerminatee, Buffer.from(JSON.stringify(messageTerminate)));
-            resolve();
+            return resolve();
         }
         catch(ex)
         {
