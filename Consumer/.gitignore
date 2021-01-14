@@ -1,0 +1,5 @@
+.idea/shelf/
+.idea/workspace.xml
+*.properties
+src/main/resources/
+target/*
